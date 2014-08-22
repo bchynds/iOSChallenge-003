@@ -8,16 +8,23 @@
 
 import UIKit
 
-class ViewController: UIViewController, UIWebViewDelegate {
+class ViewController: UIViewController, UIWebViewDelegate, UITextFieldDelegate {
+    
+    @IBOutlet weak var backButton: UIButton!
+    @IBOutlet weak var forwardButton: UIButton!
+    @IBOutlet weak var goButton: UIButton!
     
     @IBAction func goButtonPressed(sender: UIButton) {
-        
+        loadURLAddress(processURLString(urlBar.text))
+        urlBar.resignFirstResponder()
     }
+    
     @IBAction func backButtonPressed(sender: UIButton) {
-        
+        webView.goBack()
     }
+    
     @IBAction func forwardButtonPressed(sender: UIButton) {
-        
+        webView.goForward()
     }
     
     @IBOutlet weak var webView: UIWebView!
@@ -29,12 +36,29 @@ class ViewController: UIViewController, UIWebViewDelegate {
         
         super.viewDidLoad()
         
-        // Load the URL from the URL bar and display it
+        urlBar.delegate = self
         
+        // Load the URL from the URL bar and display it
+        // If blank (first load), use default (google.com)
         webView.delegate = self
-        var urlPath = "http://www.google.com"
+        var urlPath = urlBar.text
+        
+        if countElements(urlPath) == 0 {
+            urlPath = "http://www.google.com"
+        }
+        
+        // Display the page (if possible)
         loadURLAddress(urlPath)
         
+    }
+    
+    func processURLString(var urlString: String)->String {
+        if urlString.hasPrefix("http://") {
+            return urlString
+        } else {
+            urlString = "http://" + urlString
+            return urlString
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -42,16 +66,42 @@ class ViewController: UIViewController, UIWebViewDelegate {
         // Dispose of any resources that can be recreated.
     }
 
-    func loadURLAddress(url: String) {
-        var requestURL = NSURL(string: url)
+    func loadURLAddress(urlString: String) {
+        var requestURL = NSURL(string: urlString)
         var request = NSURLRequest(URL: requestURL)
         webView.loadRequest(request)
+        urlBar.text = urlString
+        
         
         println("Loaded address: \(requestURL)")
     }
     
     func webView(webView: UIWebView!, didFailLoadWithError error: NSError!) {
-        println("Error: \(NSError.description())")
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        println("Error: \(error)")
+    }
+    
+    func updateButtons() {
+        backButton.enabled = webView.canGoBack
+        forwardButton.enabled = webView.canGoForward
+    }
+    
+    func webViewDidStartLoad(webView: UIWebView!) {
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+        updateButtons()
+    }
+    
+    func webViewDidFinishLoad(webView: UIWebView!) {
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        updateButtons()
+    }
+    
+    func textFieldShouldReturn(textField: UITextField!) -> Bool {
+        if textField == urlBar {
+            loadURLAddress(processURLString(urlBar.text))
+        }
+        urlBar.resignFirstResponder()
+        return true
     }
 
 }
