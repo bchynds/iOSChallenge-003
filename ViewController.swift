@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UIWebViewDelegate {
     
     @IBAction func goButtonPressed(sender: UIButton) {
         
@@ -21,6 +21,8 @@ class ViewController: UIViewController {
     }
     
     @IBOutlet weak var webView: UIWebView!
+    
+    
     @IBOutlet weak var urlBar: UITextField!
     
     override func viewDidLoad() {
@@ -28,8 +30,10 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         
         // Load the URL from the URL bar and display it
+        
+        webView.delegate = self
         var urlPath = "http://www.google.com"
-        loadURLAddress(urlPath as String)
+        loadURLAddress(urlPath)
         
     }
 
@@ -39,11 +43,15 @@ class ViewController: UIViewController {
     }
 
     func loadURLAddress(url: String) {
-        let requestURL = NSURL(string: url)
-        let request = NSURLRequest(URL: requestURL)
+        var requestURL = NSURL(string: url)
+        var request = NSURLRequest(URL: requestURL)
         webView.loadRequest(request)
         
-        println("Loaded: \(requestURL)")
+        println("Loaded address: \(requestURL)")
+    }
+    
+    func webView(webView: UIWebView!, didFailLoadWithError error: NSError!) {
+        println("Error: \(NSError.description())")
     }
 
 }
